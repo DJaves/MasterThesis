@@ -61,17 +61,27 @@ import delimited votacao_candidato_munzona_2024_BRASIL.csv, clear
 /*------------------------------------------------------------------------------
     1   Gender addition
 ------------------------------------------------------------------------------*/
+	*Character replacement for accuracy
 
+
+	
 	*Generate first name variable
 	split nm_candidato, gen(nm_firstname) l(3)									//Keeping first 3 words for potential improvements on genderit 
 	replace nm_firstname1=lower(nm_firstname1)
 	
 	
+	*Error correction for firstname1
+		replace nm_firstname1=nm_firstname2 if regexm(nm_firstname1, "^[0-9]{2}")
+		
+	
 	*Generate country code for genderit
 	gen ctry="BR"
 	
+	
+	
 	*Gender addition
 	genderit nm_firstname1 ctry
+	
 
 	
 	
