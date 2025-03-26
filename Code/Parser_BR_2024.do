@@ -59,17 +59,18 @@ import delimited votacao_candidato_munzona_2024_BRASIL.csv, clear
 	save "$output\raw_data.dta"
 
 
-
+use raw_data, clear
 /*------------------------------------------------------------------------------
     1   Gender addition
 ------------------------------------------------------------------------------*/
 
 
-
+	**** STAGE 1 -> Identify based on first name
 	
 	*Generate first name variable
+	replace nm_candidato = lower(nm_candidato)
 	split nm_candidato, gen(nm_firstname) l(3)									//Keeping first 3 words for potential improvements on genderit 
-	replace nm_firstname1=lower(nm_firstname1)
+
 	
 	
 	*Error correction for firstname1
@@ -77,6 +78,7 @@ import delimited votacao_candidato_munzona_2024_BRASIL.csv, clear
 	
 	
 	*Character replacement for accuracy
+	/*
 	replace nm_firstname1=subinstr(nm_firstname1,"Ã","A",.)
 	replace nm_firstname1=subinstr(nm_firstname1,"Ô","O",.)
 	
@@ -88,6 +90,7 @@ import delimited votacao_candidato_munzona_2024_BRASIL.csv, clear
 	replace nm_firstname1=subinstr(nm_firstname1,"Ú","U",.)
 	
 	replace nm_firstname1=subinstr(nm_firstname1,"Ç","C",.)
+	*/
 		
 	
 	*Generate country code for genderit
@@ -103,4 +106,58 @@ import delimited votacao_candidato_munzona_2024_BRASIL.csv, clear
 	
 	
 	*Check data state
-	tab gender if ds_sit_tot_turno=="ELEITO"
+	tab gender
+	
+		/*		
+		Most likely |
+			 gender |
+			 (>=.6) |      Freq.     Percent        Cum.
+		------------+-----------------------------------
+				  F |    198,383       27.76       27.76
+				  M |    350,079       48.98       76.74
+				  U |    166,267       23.26      100.00
+		------------+-----------------------------------
+			  Total |    714,729      100.00
+		*/
+
+	
+	
+	
+	**** STAGE 2 -> For non identified, go with second word (most likely second name, subject to review)
+	
+		*renaming first stage vars for command functioning
+		rename (gender probF probM probU step) (gender_1 probF_1 probM_1 probU_1 step_1)
+		
+	*Gender based on second name	
+	genderit nm_firstname2 ctry 
+	
+	
+		*renaming for consistency
+		rename prob_1 gender_1
+		rename (gender probF probM probU step) (gender_2 probF_2 probM_2 probU_2 step_2)
+		
+		
+	*Replace gender_1 with gender_2 for unidentified on first stage
+	replace gender_1=gender_2 if gender_1=="U"
+	
+	
+	*Check data state
+	tab gender_1
+	
+		/*		
+		Most likely |
+			 gender |
+			 (>=.6) |      Freq.     Percent        Cum.
+		------------+-----------------------------------
+				  F |    223,752       31.31       31.31
+				  M |    426,636       59.69       91.00
+				  U |     64,341        9.00      100.00
+		------------+-----------------------------------
+			  Total |    714,729      100.00
+		*/
+
+	
+	
+	
+	
+	
