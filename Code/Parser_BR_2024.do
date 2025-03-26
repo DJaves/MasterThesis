@@ -6,8 +6,8 @@
 *  PURPOSE:          Data Parser		             		                   *
 *                                                                              *
 *  OUTLINE:          0 Define locals, directories and packages                 *
-*                    1 Data Preparation                         			   *
-*                    2 Data Exploration                         			   *
+*                    1 Import the dataset                         			   *
+*                    2 Gender Addition	                         			   *
 *                    3 Data Analysis		                       			   *
 *                                                                              *
 *  REQUIRES: 		 votacao_candidato_munzona_2024_BRASIL.csv                 *
@@ -61,7 +61,7 @@ import delimited votacao_candidato_munzona_2024_BRASIL.csv, clear
 
 use raw_data, clear
 /*------------------------------------------------------------------------------
-    1   Gender addition
+    2   Gender addition
 ------------------------------------------------------------------------------*/
 
 
