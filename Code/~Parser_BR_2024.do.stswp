@@ -29,6 +29,7 @@
 
 local packages 1
 global input	"C:\Users\Daniel\Documents\Thesis\Raw Data"
+global output	"C:\Users\Daniel\Documents\Thesis\Out"
 
 
 *Install packages
@@ -54,14 +55,15 @@ cd "$input"
 ------------------------------------------------------------------------------*/
 
 
-import delimited votacao_candidato_munzona_2024_BRASIL.csv, clear
+import delimited votacao_candidato_munzona_2024_BRASIL.csv, clear		
+	save "$output\raw_data.dta"
 
 
 
 /*------------------------------------------------------------------------------
     1   Gender addition
 ------------------------------------------------------------------------------*/
-	*Character replacement for accuracy
+
 
 
 	
@@ -71,7 +73,21 @@ import delimited votacao_candidato_munzona_2024_BRASIL.csv, clear
 	
 	
 	*Error correction for firstname1
-		replace nm_firstname1=nm_firstname2 if regexm(nm_firstname1, "^[0-9]{2}")
+	replace nm_firstname1=nm_firstname2 if regexm(nm_firstname1, "^[0-9]{2}")
+	
+	
+	*Character replacement for accuracy
+	replace nm_firstname1=subinstr(nm_firstname1,"Ã","A",.)
+	replace nm_firstname1=subinstr(nm_firstname1,"Ô","O",.)
+	
+	
+	replace nm_firstname1=subinstr(nm_firstname1,"Á","A",.)
+	replace nm_firstname1=subinstr(nm_firstname1,"É","E",.)
+	replace nm_firstname1=subinstr(nm_firstname1,"Í","I",.)
+	replace nm_firstname1=subinstr(nm_firstname1,"Ó","O",.)
+	replace nm_firstname1=subinstr(nm_firstname1,"Ú","U",.)
+	
+	replace nm_firstname1=subinstr(nm_firstname1,"Ç","C",.)
 		
 	
 	*Generate country code for genderit
