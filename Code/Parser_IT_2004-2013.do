@@ -123,8 +123,17 @@ sort regione provincia comune date turno
 
 
 /*------------------------------------------------------------------------------
-    3   Generating winning election vars
+    3   Gender imputing
 -------------------------------------------------------------------------------*/
+
+	*split nome
+	replace nome = lower(nome)
+	split nome
+	
+	
+	gen ctry="IT"
+	
+	genderit nome1 ctry
 
  
 	
