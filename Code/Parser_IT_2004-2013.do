@@ -82,19 +82,43 @@ foreach date in `dates' {
 ** Store dataset
 
 	save "$output\electoral_main.dta", replace
+	
+	
 /*------------------------------------------------------------------------------
     2   Reduce to final election base
 ------------------------------------------------------------------------------*/
+** Import dataset refined
+use "$output\electoral_main.dta", clear
 
-sort regione provincia comune date turno
+sort regione provincia comune date turno 
 
-	* 
+	* Keep only final turno database
 	by regione provincia comune date: egen max_turno=max(turno) 
 	drop if max_turno!=turno
 	
 	
 	
+	* Keep only candidates level
+	duplicates report regione provincia comune date turno cognome nome 
+	duplicates drop regione provincia comune date turno cognome nome, force
+	
+	* Get margin of victory
+	gsort regione provincia comune date turno - voti_candidato 
+	bys regione provincia comune date turno: gen rank = _n						// Candidate ranking on final list 
+	
+	
+	bys regione provincia comune date turno: gen margin = voti_candidato[_n] - voti_candidato[_n+1]
+		gen margin_pct = margin/elettori
 
+
+		
+	*Computing descriptives
+	tabstat margin_pct if rank==1, s(n mean sd min max p10 p25 p50 p75 p90)
+
+/*    Variable |         N      Mean        SD       Min       Max       p10       p25       p50       p75       p90
+-------------+----------------------------------------------------------------------------------------------------
+  margin_pct |     14007  .1508535  .1273005         0      .875  .0206573  .0510256   .116603  .2176658   .334704
+------------------------------------------------------------------------------------------------------------------*/
 
 
 
