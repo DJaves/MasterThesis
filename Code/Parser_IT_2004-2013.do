@@ -1,16 +1,15 @@
 /*******************************************************************************
 *                                                                              *
-*  NAME:			 Parser_BR_2024		             		                   *
+*  NAME:			 Parser_IT_2004-2013		             		           *
 *																			   *
 *																			   *
 *  PURPOSE:          Data Parser		             		                   *
 *                                                                              *
 *  OUTLINE:          0 Define locals, directories and packages                 *
-*                    1 Data Preparation                         			   *
-*                    2 Data Exploration                         			   *
-*                    3 Data Analysis		                       			   *
+*                    1 Import the dataset                         			   *
+*                    3 Data Check		                       		      	   *
 *                                                                              *
-*  REQUIRES: 		 votacao_candidato_munzona_2024_BRASIL.csv                 *
+*  REQUIRES: 		comunali-"".csv							                   *
 *                                                                              *
 *  OUTPUT:           main_data							                  	   *
 *                                                                              *
@@ -29,12 +28,13 @@
 
 local packages 1
 global input	"C:\Users\Daniel\Documents\Thesis\Raw Data"
+global output	"C:\Users\Daniel\Documents\Thesis\Out"
 
 
 *Install packages
 
 
-if `packages'==1 {
+if `packages'==0 {
 	
 	*Genderit
 	*net from "https://raw.githubusercontent.com/IES-platform/r4r_gender/master/genderit/STATA/"
@@ -48,43 +48,45 @@ if `packages'==1 {
 cd "$input"
 
 
-
-/*------------------------------------------------------------------------------
-    1   Import the dataset
-------------------------------------------------------------------------------*/
+local dates 20040612 20040626 20050403 20050417 20050508 20051127 20060528 20060604 20060611 20060618 20060709 20060716 20061001 20070527 20070610 20070617 20070715 20080413 20080427 20080608 20080615 20090607 20091129 20100328 20100411 20100418 20100530 20101128 20110515 20110522 20111127 20120506 20120610 20120617 20120624 20121028 20130526 20131117
 
 
-import delimited votacao_candidato_munzona_2024_BRASIL.csv, clear
 
 
 
 /*------------------------------------------------------------------------------
-    1   Gender addition
+    1   Appending Electoral Data
 ------------------------------------------------------------------------------*/
-	*Character replacement for accuracy
+
+foreach date in `dates' {
+	local election "comunali-`date'.txt"
+	import delimited `election' , clear
+	gen date="`date'"
+	tempfile data_`date'
+	save "data_`date'", replace
+	
+}
 
 
-	
-	*Generate first name variable
-	split nm_candidato, gen(nm_firstname) l(3)									//Keeping first 3 words for potential improvements on genderit 
-	replace nm_firstname1=lower(nm_firstname1)
-	
-	
-	*Error correction for firstname1
-		replace nm_firstname1=nm_firstname2 if regexm(nm_firstname1, "^[0-9]{2}")
-		
-	
-	*Generate country code for genderit
-	gen ctry="BR"
-	
-	
-	
-	*Gender addition
-	genderit nm_firstname1 ctry
-	
+clear
 
+
+
+foreach date in `dates' {
+	append using "data_`date'"
+}
+
+
+/*------------------------------------------------------------------------------
+    2   Generating winning election vars
+------------------------------------------------------------------------------*/
+
+
+
+
+/*------------------------------------------------------------------------------
+    2   Generating winning election vars
+------------------------------------------------------------------------------
+
+ 
 	
-	
-	
-	*Check data state
-	tab gender if ds_sit_tot_turno=="ELEITO"
