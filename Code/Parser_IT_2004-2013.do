@@ -244,7 +244,9 @@ rename anno year
 
 	save pre_merge, replace
 	
-	merge m:1 year provincia comune using "$output\electoral_main_expanded.dta", keepusing(margin_pct gender gender_second last_election_year)
+	use pre_merge, clear
+	
+	merge m:1 year provincia comune using "$output\electoral_main_expanded.dta", keepusing(margin_pct gender gender_second last_election_year id elettori)
 	
 	
 /*
@@ -310,6 +312,8 @@ has_badchar |      Freq.     Percent        Cum.
     7   Final var generation
 -------------------------------------------------------------------------------*/
 
+	use "$output\merged_progress.dta", clear
+
 	gen years_from_last_election = year - last_election_year
 	
 	
@@ -326,7 +330,7 @@ has_badchar |      Freq.     Percent        Cum.
     8   Bonus - First regression (to be moved to analyzer)
 -------------------------------------------------------------------------------*/
 
-xtset id year
+
 
 	gen dummy = 1 if gender=="F"
 		replace dummy = 0 if gender =="M"
@@ -338,7 +342,7 @@ xtset id year
 	preserve
 		drop if gender == gender_second
 		
-		reghdfe delitti_scoperti dummy dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.1, absorb(year comune) 
+		reghdfe delitti_totale dummy dummy#c.elettori dummy#c.margin_fem c.margin_fem elettori if delitto_name=="violenze sessuali" & margin_pct<0.05, absorb(year) 
 	restore
 	
 	
