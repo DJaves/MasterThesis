@@ -244,9 +244,26 @@ rename anno year
 
 	save pre_merge, replace
 	
-	merge m:1 year provincia comune using "$output\electoral_main.dta", keepusing(margin_pct gender gender_second)
+	merge m:1 year provincia comune using "$output\electoral_main_expanded.dta", keepusing(margin_pct gender gender_second)
 	
 	
+/*
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       394,498
+        from master                   388,678  (_merge==1)
+        from using                      5,820  (_merge==2)
+
+    Matched                         2,173,220  (_merge==3)
+    -----------------------------------------
+
+	
+	Observations with no sigla: 25 670
+Expected unmatched (on average municipalities unmatched): 301 203
+unmatched municipalities from electoral data: 582
+
+*/
 	
 	
 
