@@ -164,7 +164,10 @@ sort regione provincia comune date turno
 	replace comune = lower(comune)
 	
 	*Export for merge
+	keep if rank==1
 	save "$output\electoral_main.dta", replace
+	
+	
 	
 	
 /*------------------------------------------------------------------------------
@@ -190,12 +193,20 @@ sort regione provincia comune date turno
 
 	use confinati_merge_reati, clear
 	rename provincia sigla
-	merge m:1 sigla using provincia_data, keepusing(provincia)
+	merge m:1 sigla using provincia_data, keepusing(provincia) nogen
 	
 	/// All matched, we ball!
 	
 	
+
 	
+/*------------------------------------------------------------------------------
+    7   Big merge time
+-------------------------------------------------------------------------------*/
+
+rename anno year
+	
+	merge m:1 year provincia using "$output\electoral_main.dta", keepusing(margin_pct gender gender_second)
 	
 	
 	
