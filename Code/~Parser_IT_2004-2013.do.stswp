@@ -150,12 +150,27 @@ sort regione provincia comune date turno
 		destring year, replace
 		
 	* Generate gender of second place
-	bro if gender == "F" & gender_second == "F"
-	
 	gsort regione provincia comune date turno - voti_candidato 
 	
 	gen gender_second = gender[_n+1] if rank == 1
 	
 	gen cognome_second = cognome[_n+1] if rank == 1
+	
+	
+	
+	*lower geographical for matching
+	replace regione = lower(regione)
+	replace provincia = lower(provincia)
+	replace comune = lower(comune)
+	
+	*Export for merge
+	save "$output\electoral_main.dta", replace
+	
+	
+	
+	
+	
+	
+	
 	
 	

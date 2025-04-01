@@ -157,3 +157,20 @@ sort regione provincia comune date turno
 	gen cognome_second = cognome[_n+1] if rank == 1
 	
 	
+	
+	*lower geographical for matching
+	replace regione = lower(regione)
+	replace provincia = lower(provincia)
+	replace comune = lower(comune)
+	
+	*Export for merge
+	save "$output\electoral_main.dta", replace
+	
+	
+	
+	
+	
+	
+	
+	
+	
