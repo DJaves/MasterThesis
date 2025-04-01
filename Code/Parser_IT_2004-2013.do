@@ -141,5 +141,12 @@ sort regione provincia comune date turno
 	*** Pending: Gender refinement
 
 /*------------------------------------------------------------------------------
-    4   
+    4   Generate key variables for analysis
 -------------------------------------------------------------------------------*/
+
+
+	* Generate year 
+	generate year = substr(date,1,4)
+		destring year, replace
+		
+	* 
