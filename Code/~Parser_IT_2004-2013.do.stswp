@@ -9,7 +9,7 @@
 *                    1 Import the dataset                         			   *
 *                    3 Data Check		                       		      	   *
 *                                                                              *
-*  REQUIRES: 		comunali-"".csv							                   *
+*  REQUIRES: 		 comunali-"".csv						                   *
 *                                                                              *
 *  OUTPUT:           main_data							                  	   *
 *                                                                              *
@@ -26,7 +26,7 @@
 
 *Macros
 
-local packages 1
+local packages 0
 global input	"C:\Users\Daniel\Documents\Thesis\Raw Data"
 global output	"C:\Users\Daniel\Documents\Thesis\Out"
 
@@ -34,7 +34,7 @@ global output	"C:\Users\Daniel\Documents\Thesis\Out"
 *Install packages
 
 
-if `packages'==0 {
+if `packages'==1 {
 	
 	*Genderit
 	*net from "https://raw.githubusercontent.com/IES-platform/r4r_gender/master/genderit/STATA/"
@@ -58,35 +58,223 @@ local dates 20040612 20040626 20050403 20050417 20050508 20051127 20060528 20060
     1   Appending Electoral Data
 ------------------------------------------------------------------------------*/
 
+** Save dta for every election day
 foreach date in `dates' {
 	local election "comunali-`date'.txt"
 	import delimited `election' , clear
+	
+	*Gen date variable for ID
 	gen date="`date'"
 	tempfile data_`date'
-	save "data_`date'", replace
+	save `data_`date'', replace
 	
 }
 
-
+** Back to a clean dataset
 clear
 
 
-
+** Append all dates together
 foreach date in `dates' {
-	append using "data_`date'"
+	append using `data_`date''
 }
 
+** Store dataset
 
+	save "$output\electoral_main.dta", replace
+	
+	
 /*------------------------------------------------------------------------------
-    2   Generating winning election vars
+    2   Reduce to final election base
 ------------------------------------------------------------------------------*/
+** Import dataset refined
+use "$output\electoral_main.dta", clear
 
+sort regione provincia comune date turno 
+
+	* Keep only final turno database
+	by regione provincia comune date: egen max_turno=max(turno) 
+	drop if max_turno!=turno
+	
+	
+	
+	* Keep only candidates level
+	duplicates report regione provincia comune date turno cognome nome 
+	duplicates drop regione provincia comune date turno cognome nome, force
+	
+	* Get margin of victory
+	gsort regione provincia comune date turno - voti_candidato 
+	bys regione provincia comune date turno: gen rank = _n						// Candidate ranking on final list 
+	
+	
+	bys regione provincia comune date turno: gen margin = voti_candidato[_n] - voti_candidato[_n+1]
+		gen margin_pct = margin/elettori
+
+
+		
+	*Computing descriptives
+	tabstat margin_pct if rank==1, s(n mean sd min max p10 p25 p50 p75 p90)
+
+/*    Variable |         N      Mean        SD       Min       Max       p10       p25       p50       p75       p90
+-------------+----------------------------------------------------------------------------------------------------
+  margin_pct |     14007  .1508535  .1273005         0      .875  .0206573  .0510256   .116603  .2176658   .334704
+------------------------------------------------------------------------------------------------------------------*/
 
 
 
 /*------------------------------------------------------------------------------
-    2   Generating winning election vars
-------------------------------------------------------------------------------
+    3   Gender imputing
+-------------------------------------------------------------------------------*/
 
- 
+	*split nome
+	replace nome = lower(nome)
+	split nome
+	
+	
+	gen ctry="IT"
+	
+	genderit nome1 ctry
+	
+	tab gender if rank==1
+
+	*** NOTE: Some names are getting assigned when they should be undetermined: "Andrea" and "Mattia" for example
+	*** Pending: Gender refinement
+
+/*------------------------------------------------------------------------------
+    4   Generate key variables for analysis
+-------------------------------------------------------------------------------*/
+
+
+	* Generate year 
+	generate year = substr(date,1,4)
+		destring year, replace
+		
+	* Generate gender of second place
+	gsort regione provincia comune date turno - voti_candidato 
+	
+	gen gender_second = gender[_n+1] if rank == 1
+	
+	gen cognome_second = cognome[_n+1] if rank == 1
+	
+	
+	
+	*lower geographical for matching
+	replace regione = lower(regione)
+	replace provincia = lower(provincia)
+	replace comune = lower(comune)
+	
+	*Export for merge
+	keep if rank==1
+	save "$output\electoral_main.dta", replace
+	
+	use "$output\electoral_main.dta", clear
+	
+	gsort regione provincia comune date turno - voti_candidato year
+	
+	gen last_election_year = year
+	
+	
+	
+	*** Data expansion
+	* Step 1: Create panel identifier
+	egen id = group(regione provincia comune)
+
+	* Step 2: Set as panel data
+	xtset id year
+
+	* Step 3: Fill in missing years (2004–2013)
+	tsfill, full
+
+	
+	* Step 1: Create a local with the variables to recover
+	ds id year, not
+	local vars `r(varlist)'
+
+	* Step 2: Loop over the variables and recover values
+	foreach var of local vars {
+		bysort id (year): replace `var' = `var'[_n-1] if missing(`var')
+	}
+
+	gsort id -year
+	by id: gen aux = _n
+	foreach var of local vars {
+    
+    bys id (aux): replace `var' = `var'[_n-1] if missing(`var')
+}
+
+	save "$output\electoral_main_expanded.dta", replace
+
+
+	
+/*------------------------------------------------------------------------------
+    5   sigla data
+-------------------------------------------------------------------------------*/
+	
+	
+	
+
+
+	*Import the data
+	import excel "provincia_data.xlsx", clear firstrow
+		replace provincia = lower(provincia)
+		
+		
+	save "provincia_data.dta", replace
+	
+
+	
+/*------------------------------------------------------------------------------
+    6   sigla with provincia merge
+-------------------------------------------------------------------------------*/
+
+	use confinati_merge_reati, clear
+	rename provincia sigla
+	merge m:1 sigla using provincia_data, keepusing(provincia) nogen
+	
+	/// All matched, we ball!
+	
+	replace provincia = lower(provincia)
+
+	
+/*------------------------------------------------------------------------------
+    7   Big merge time
+-------------------------------------------------------------------------------*/
+
+rename anno year
+
+	save pre_merge, replace
+	
+	merge m:1 year provincia comune using "$output\electoral_main_expanded.dta", keepusing(margin_pct gender gender_second)
+	
+	
+/*
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       394,498
+        from master                   388,678  (_merge==1)
+        from using                      5,820  (_merge==2)
+
+    Matched                         2,173,220  (_merge==3)
+    -----------------------------------------
+
+	
+	Observations with no sigla: 25 670
+Expected unmatched (on average municipalities unmatched): 301 203
+unmatched municipalities from electoral data: 582
+
+*/
+
+** Next step: Checking unmatched for corrections. Most likely: unrecognized characters from 
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
 	
