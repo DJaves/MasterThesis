@@ -167,6 +167,42 @@ sort regione provincia comune date turno
 	save "$output\electoral_main.dta", replace
 	
 	
+/*------------------------------------------------------------------------------
+    5   sigla data
+-------------------------------------------------------------------------------*/
+	
+	
+	
+
+
+	*Import the data
+	import excel "provincia_data.xlsx", clear firstrow
+		replace provincia = lower(provincia)
+		
+		
+	save "provincia_data.dta", replace
+	
+
+	
+/*------------------------------------------------------------------------------
+    6   sigla with provincia merge
+-------------------------------------------------------------------------------*/
+
+	use confinati_merge_reati, clear
+	rename provincia sigla
+	merge m:1 sigla using provincia_data, keepusing(provincia)
+	
+	/// All matched, we ball!
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
 	
 	
 	

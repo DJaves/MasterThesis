@@ -182,6 +182,23 @@ sort regione provincia comune date turno
 		
 	save "provincia_data.dta", replace
 	
+
+	
+/*------------------------------------------------------------------------------
+    6   sigla with provincia merge
+-------------------------------------------------------------------------------*/
+
+	use confinati_merge_reati, clear
+	rename provincia sigla
+	merge m:1 sigla using provincia_data, keepusing(provincia)
+	
+	/// All matched, we ball!
+	
+	
+	
+	
+	
+	
 	
 
 	
