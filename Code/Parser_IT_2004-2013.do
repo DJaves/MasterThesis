@@ -267,13 +267,41 @@ unmatched municipalities from electoral data: 582
 
 ** Next step: Checking unmatched for corrections. Most likely: unrecognized characters from crime data. 
 	
+sort regione provincia comune
+br regione provincia comune if _merge==1 & year==2004
+
+* Check for bad char error size
+gen has_badchar = ustrregexm(comune, "\uFFFD")
+	tab has_badchar if _merge == 1
 	
+	
+/*
+has_badchar |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |    343,128       88.28       88.28
+          1 |     45,550       11.72      100.00
+------------+-----------------------------------
+      Total |    388,678      100.00
+	  
+	  11.72% of unmatched obs is most likely due to the badchar issue
+*/
 
 	
 	
+	br regione provincia comune if _merge==1 & year==2004 & has_badchar == 0
 	
 	
+	unique comune if _merge==1 & year==2004 & has_badchar == 0
+	/*
+	Number of unique values of comune is  1059
+	Number of records is  34147
+
+	Approximate number of unmatched municipalities not explained by the bad_char issue
 	
+	The unique comunes difference in both datasets is 860. Therefore, should aim to get the previous number to this. 
+	*/
+	
+
 	
 	
 	
