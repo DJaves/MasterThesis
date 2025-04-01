@@ -244,7 +244,7 @@ rename anno year
 
 	save pre_merge, replace
 	
-	merge m:1 year provincia comune using "$output\electoral_main_expanded.dta", keepusing(margin_pct gender gender_second)
+	merge m:1 year provincia comune using "$output\electoral_main_expanded.dta", keepusing(margin_pct gender gender_second last_election_year)
 	
 	
 /*
@@ -288,10 +288,11 @@ has_badchar |      Freq.     Percent        Cum.
 
 	
 	
-	br regione provincia comune if _merge==1 & year==2004 & has_badchar == 0
+	*br regione provincia comune if _merge==1 & year==2004 & has_badchar == 0
 	
 	
-	unique comune if _merge==1 & year==2004 & has_badchar == 0
+	*unique comune if _merge==1 & year==2004 & has_badchar == 0
+	
 	/*
 	Number of unique values of comune is  1059
 	Number of records is  34147
@@ -301,7 +302,47 @@ has_badchar |      Freq.     Percent        Cum.
 	The unique comunes difference in both datasets is 860. Therefore, should aim to get the previous number to this. 
 	*/
 	
+	save "$output\merged_progress.dta", replace
 
+	
+	
+/*------------------------------------------------------------------------------
+    7   Final var generation
+-------------------------------------------------------------------------------*/
+
+	gen years_from_last_election = year - last_election_year
+	
+	
+	
+	keep if _merge==3
+	
+	gen delitti_totale = delitti_commessi + delitti_scoperti
+	
+	
+	
+	
+	
+/*------------------------------------------------------------------------------
+    8   Bonus - First regression (to be moved to analyzer)
+-------------------------------------------------------------------------------*/
+
+xtset id year
+
+	gen dummy = 1 if gender=="F"
+		replace dummy = 0 if gender =="M"
+
+		
+	gen margin_fem = margin_pct
+		replace margin_fem = -margin_pct if gender_second == "F"
+		
+	preserve
+		drop if gender == gender_second
+		
+		reghdfe delitti_scoperti dummy dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.1, absorb(year comune) 
+	restore
+	
+	
+	
 	
 	
 	
