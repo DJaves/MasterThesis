@@ -167,8 +167,44 @@ sort regione provincia comune date turno
 	keep if rank==1
 	save "$output\electoral_main.dta", replace
 	
+	use "$output\electoral_main.dta", clear
+	
+	gsort regione provincia comune date turno - voti_candidato year
+	
+	gen last_election_year = year
 	
 	
+	
+	*** Data expansion
+	* Step 1: Create panel identifier
+	egen id = group(regione provincia comune)
+
+	* Step 2: Set as panel data
+	xtset id year
+
+	* Step 3: Fill in missing years (2004–2013)
+	tsfill, full
+
+	
+	* Step 1: Create a local with the variables to recover
+	ds id year, not
+	local vars `r(varlist)'
+
+	* Step 2: Loop over the variables and recover values
+	foreach var of local vars {
+		bysort id (year): replace `var' = `var'[_n-1] if missing(`var')
+	}
+
+	gsort id -year
+	by id: gen aux = _n
+	foreach var of local vars {
+    
+    bys id (aux): replace `var' = `var'[_n-1] if missing(`var')
+}
+
+	save "$output\electoral_main_expanded.dta", replace
+
+
 	
 /*------------------------------------------------------------------------------
     5   sigla data
@@ -197,7 +233,7 @@ sort regione provincia comune date turno
 	
 	/// All matched, we ball!
 	
-	
+	replace provincia = lower(provincia)
 
 	
 /*------------------------------------------------------------------------------
@@ -205,8 +241,10 @@ sort regione provincia comune date turno
 -------------------------------------------------------------------------------*/
 
 rename anno year
+
+	save pre_merge, replace
 	
-	merge m:1 year provincia using "$output\electoral_main.dta", keepusing(margin_pct gender gender_second)
+	merge m:1 year provincia comune using "$output\electoral_main.dta", keepusing(margin_pct gender gender_second)
 	
 	
 	
