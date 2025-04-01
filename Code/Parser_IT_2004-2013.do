@@ -149,4 +149,11 @@ sort regione provincia comune date turno
 	generate year = substr(date,1,4)
 		destring year, replace
 		
-	* 
+	* Generate gender of second place
+	gsort regione provincia comune date turno - voti_candidato 
+	
+	gen gender_second = gender[_n+1] if rank == 1
+	
+	gen cognome_second = cognome[_n+1] if rank == 1
+	
+	
