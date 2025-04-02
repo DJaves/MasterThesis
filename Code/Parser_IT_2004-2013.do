@@ -28,7 +28,7 @@
 
 local packages 0
 global input	"C:\Users\Daniel\Documents\Thesis\Raw Data"
-global output	"C:\Users\Daniel\Documents\Thesis\Out"
+global output	"C:\Users\Daniel\Documents\Thesis\Parsed Data"
 
 
 *Install packages
@@ -325,13 +325,6 @@ has_badchar |      Freq.     Percent        Cum.
 	
 	
 	
-	
-/*------------------------------------------------------------------------------
-    8   Bonus - First regression (to be moved to analyzer)
--------------------------------------------------------------------------------*/
-
-
-
 	gen dummy = 1 if gender=="F"
 		replace dummy = 0 if gender =="M"
 
@@ -339,13 +332,11 @@ has_badchar |      Freq.     Percent        Cum.
 	gen margin_fem = margin_pct
 		replace margin_fem = -margin_pct if gender_second == "F"
 		
-	preserve
-		drop if gender == gender_second
 		
-		reghdfe delitti_totale dummy dummy#c.elettori dummy#c.margin_fem c.margin_fem elettori if delitto_name=="violenze sessuali" & margin_pct<0.05, absorb(year) 
-	restore
+	save "$output\final_database.dta", replace 
 	
 	
+
 	
 	
 	
