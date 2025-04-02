@@ -114,14 +114,15 @@ use final_database, clear
 	foreach n in 0 1 2 3 4{
 		
 		preserve
+			local re "reg1_1_year_`n'"
 			display "year `n'"
 			keep if years_from_last_election == `n' 
 			drop if gender == gender_second
 			
-			reg totale_pc dummy dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.2
+			eststo `re': reg totale_pc_x100000 dummy dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.2
 		restore	
 	}
-	
+		esttab reg1_1_year_0 reg1_1_year_1 reg1_1_year_2 reg1_1_year_3 reg1_1_year_4 using "$output\table2_1.tex", stats(N r2) star(* 0.10 ** 0.05 *** 0.01) replace se
 	
 	* RDD - Year FE - 20% margin threshold
 	foreach n in 0 1 2 3 4{
