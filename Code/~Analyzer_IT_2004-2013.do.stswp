@@ -132,19 +132,28 @@ use final_database, clear
 	
 	
 	*RDD - Year FE, number of electors - 20% margin threshold
-	preserve
-		drop if gender == gender_second
+	foreach n in 0 1 2 3 4{
 		
-		reghdfe totale_pc dummy dummy#c.margin_fem c.margin_fem elettori if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year) 
-	restore
-	
+		preserve
+			display "year `n'"
+			keep if years_from_last_election == `n' 
+			drop if gender == gender_second
+			
+			reghdfe totale_pc dummy dummy#c.margin_fem c.margin_fem elettori if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
+		restore	
+	}
 	
 	*RDD - Year FE, number of electors, female fraction - 20% margin threshold
-	preserve
-		drop if gender == gender_second
+	foreach n in 0 1 2 3 4{
 		
-		reghdfe totale_pc dummy dummy#c.margin_fem c.margin_fem elettori frac_female if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year) 
-	restore
+		preserve
+			display "year `n'"
+			keep if years_from_last_election == `n' 
+			drop if gender == gender_second
+			
+			reghdfe totale_pc dummy dummy#c.margin_fem c.margin_fem elettori frac_female if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
+		restore	
+	}
 	
 	
 
