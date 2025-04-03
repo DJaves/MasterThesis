@@ -258,6 +258,8 @@ rename anno year
 	
 	use pre_merge, clear
 	
+		
+	
 	merge m:1 year provincia comune using "$output\electoral_main_expanded.dta", keepusing(margin_pct gender gender_second last_election_year id elettori)
 	
 	
@@ -282,7 +284,7 @@ unmatched municipalities from electoral data: 582
 ** Next step: Checking unmatched for corrections. Most likely: unrecognized characters from crime data. 
 	
 sort regione provincia comune
-br regione provincia comune if _merge==1 & year==2004
+*br regione provincia comune if _merge==1 & year==2004
 
 * Check for bad char error size
 gen has_badchar = ustrregexm(comune, "\uFFFD")
@@ -302,8 +304,25 @@ has_badchar |      Freq.     Percent        Cum.
 
 	
 	
-	*br regione provincia comune if _merge==1 & year==2004 & has_badchar == 0
+	br regione provincia comune if _merge==1 & year==2004 & has_badchar == 0
 	
+	
+/*	* List of unmatched communes NOT DUE to the varchar issue
+	preserve
+		keep if _merge==1 & year==2004 & has_badchar == 0
+		keep regione provincia comune
+		duplicates drop
+		export excel using "$output\unmatching_municipalities_crime.xlsx", replace firstrow(variables)
+	restore
+	
+	
+	preserve
+		keep if _merge==2 & year==2004 & has_badchar == 0
+		keep regione provincia comune
+		duplicates drop
+		export excel using "$output\unmatching_municipalities_electoral.xlsx", replace firstrow(variables)
+	restore
+*/	
 	
 	*unique comune if _merge==1 & year==2004 & has_badchar == 0
 	
@@ -345,7 +364,7 @@ has_badchar |      Freq.     Percent        Cum.
 		replace margin_fem = -margin_pct if gender_second == "F"
 		
 		
-		gen totale_pc_x100000 = delitti_totale/pop_dec_tot*100000
+	gen totale_pc_x100000 = delitti_totale/pop_dec_tot*100000
 	gen frac_female = pop_dec_f/pop_dec_tot
 		
 	save "$output\final_database.dta", replace 
