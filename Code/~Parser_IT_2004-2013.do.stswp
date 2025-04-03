@@ -165,9 +165,9 @@ sort regione provincia comune date turno
 	
 	*Export for merge
 	keep if rank==1
-	save "$output\electoral_main.dta", replace
+	save "$output\electoral_main_2.dta", replace
 	
-	use "$output\electoral_main.dta", clear
+	use "$output\electoral_main_2.dta", clear
 	
 	gsort regione provincia comune date turno - voti_candidato year
 	
@@ -195,17 +195,20 @@ sort regione provincia comune date turno
 		bysort id (year): replace `var' = `var'[_n-1] if missing(`var')
 	}
 
+	
+
 	gsort id -year
 	by id: gen aux = _n
 	
 	ds id year last_election_year, not
 	local vars `r(varlist)'
 	
-	
-	foreach var of local vars {
+
+	foreach var of varlist provincia comune {
     
     bys id (aux): replace `var' = `var'[_n-1] if missing(`var')
 }
+
 
 	save "$output\electoral_main_expanded.dta", replace
 
