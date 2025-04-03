@@ -65,7 +65,7 @@ use final_database, clear
 	preserve
 		drop if gender == gender_second
 		
-		eststo reg1_1: reg totale_pc_x100000  dummy dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.2
+		eststo reg1_1: reg totale_pc_x100000  dummy 1.dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.2
 		estadd local year_FE "No"
 	restore	
 	
@@ -74,7 +74,7 @@ use final_database, clear
 	preserve
 		drop if gender == gender_second
 		
-		eststo reg1_2: reghdfe totale_pc_x100000  dummy dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
+		eststo reg1_2: reghdfe totale_pc_x100000  dummy 1.dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
 		estadd local year_FE "Yes"
 	restore	
 		
@@ -85,7 +85,7 @@ use final_database, clear
 	preserve
 		drop if gender == gender_second
 		
-		eststo reg1_3: reghdfe totale_pc_x100000  dummy dummy#c.margin_fem c.margin_fem elettori if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year) 
+		eststo reg1_3: reghdfe totale_pc_x100000  dummy 1.dummy#c.margin_fem c.margin_fem elettori if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year) 
 		estadd local year_FE "Yes"
 	restore
 	
@@ -94,7 +94,7 @@ use final_database, clear
 	preserve
 		drop if gender == gender_second
 		
-		eststo reg1_4: reghdfe totale_pc_x100000  dummy dummy#c.margin_fem c.margin_fem elettori frac_female if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
+		eststo reg1_4: reghdfe totale_pc_x100000  dummy 1.dummy#c.margin_fem c.margin_fem elettori frac_female if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
 		estadd local year_FE "Yes"
 	restore
 	
@@ -107,9 +107,6 @@ use final_database, clear
 -------------------------------------------------------------------------------*/
 
 
-	gen totale_pc = delitti_totale/pop_dec_tot
-	gen frac_female = pop_dec_f/pop_dec_tot
-		
 	* RDD - No Controls - 20% margin threshold
 	foreach n in 0 1 2 3 4{
 		
@@ -119,7 +116,7 @@ use final_database, clear
 			keep if years_from_last_election == `n' 
 			drop if gender == gender_second
 			
-			eststo `re': reg totale_pc_x100000 dummy dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.2
+			eststo `re': reg totale_pc_x100000 dummy 1.dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.2
 		restore	
 	}
 		esttab reg1_1_year_0 reg1_1_year_1 reg1_1_year_2 reg1_1_year_3 reg1_1_year_4 using "$output\table2_1.tex", stats(N r2) star(* 0.10 ** 0.05 *** 0.01) replace se
@@ -132,7 +129,7 @@ use final_database, clear
 			keep if years_from_last_election == `n' 
 			drop if gender == gender_second
 			
-			reghdfe totale_pc dummy dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
+			reghdfe totale_pc_x100000 dummy dummy#c.margin_fem c.margin_fem if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
 		restore	
 	}
 	
@@ -147,7 +144,7 @@ use final_database, clear
 			drop if gender == gender_second
 			
 			
-			reghdfe totale_pc dummy dummy#c.margin_fem c.margin_fem elettori if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
+			reghdfe totale_pc_x100000 dummy dummy#c.margin_fem c.margin_fem elettori if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
 		restore	
 	}
 	
@@ -159,7 +156,7 @@ use final_database, clear
 			keep if years_from_last_election == `n' 
 			drop if gender == gender_second
 			
-			reghdfe totale_pc dummy dummy#c.margin_fem c.margin_fem elettori frac_female if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
+			reghdfe totale_pc_x100000 dummy dummy#c.margin_fem c.margin_fem elettori frac_female if delitto_name=="violenze sessuali" & margin_pct<0.2, absorb(year)
 		restore	
 	}
 	
