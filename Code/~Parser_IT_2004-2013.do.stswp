@@ -197,6 +197,11 @@ sort regione provincia comune date turno
 
 	gsort id -year
 	by id: gen aux = _n
+	
+	ds id year last_election_year, not
+	local vars `r(varlist)'
+	
+	
 	foreach var of local vars {
     
     bys id (aux): replace `var' = `var'[_n-1] if missing(`var')
