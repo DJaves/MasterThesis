@@ -6,14 +6,21 @@
 *  PURPOSE:          Data Parser		             		                   *
 *                                                                              *
 *  OUTLINE:          0 Define locals, directories and packages                 *
-*                    1 Import the dataset                         			   *
-*                    3 Data Check		                       		      	   *
+*                    1 Appending Electoral Data                   			   *
+*                    2 Reduce to Final Election base               			   *
+*                    3 Gender imputing	                         			   *
+*                    4 Generate key variables for analysis        			   *
+*                    5 Sigla data                         					   *
+*                    6 Sigla with provincia merge                  			   *
+*                    7 Big merge time	                        			   *
+*                    8 Final var generation                      			   *
+*																			   *
 *                                                                              *
 *  REQUIRES: 		 comunali-"".csv						                   *
 *                                                                              *
-*  OUTPUT:           main_data							                  	   *
+*  OUTPUT:           final_database.dta					                  	   *
 *                                                                              *
-*                    Last time modified: 26 March 2025 	                       *
+*                    Last time modified: 04 April 2025 	                       *
 *                                                                              *
 ********************************************************************************
 
@@ -196,12 +203,9 @@ sort regione provincia comune date turno
 	}
 
 	
-
+	* Backward filling for provincia and comune 
 	gsort id -year
 	by id: gen aux = _n
-	
-	ds id year last_election_year, not
-	local vars `r(varlist)'
 	
 
 	foreach var of varlist provincia comune {
@@ -317,7 +321,7 @@ has_badchar |      Freq.     Percent        Cum.
 	
 	
 /*------------------------------------------------------------------------------
-    7   Final var generation
+    8   Final var generation
 -------------------------------------------------------------------------------*/
 
 	use "$output\merged_progress.dta", clear
