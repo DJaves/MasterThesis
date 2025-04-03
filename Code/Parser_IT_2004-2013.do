@@ -345,6 +345,9 @@ has_badchar |      Freq.     Percent        Cum.
 		replace margin_fem = -margin_pct if gender_second == "F"
 		
 		
+	gen totale_pc_x100000 = delitti_totale/pop_dec_tot*100000
+	gen frac_female = pop_dec_f/pop_dec_tot
+		
 	save "$output\final_database.dta", replace 
 	
 	

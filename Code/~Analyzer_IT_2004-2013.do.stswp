@@ -58,6 +58,7 @@ cd "$input"
 
 use final_database, clear
 
+
 		
 	* RDD - No Controls - 20% margin threshold
 	preserve
