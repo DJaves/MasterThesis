@@ -140,6 +140,10 @@ sort regione provincia comune date turno
 	
 	gen ctry="IT"
 	
+	genderit nome2 ctry
+	rename gender prob_altro_nome
+	drop prob* step
+	
 	genderit nome1 ctry
 	
 	tab gender if rank==1
@@ -147,6 +151,8 @@ sort regione provincia comune date turno
 	*** NOTE: Some names are getting assigned when they should be undetermined: "Andrea" and "Mattia" for example
 	*** Pending: Gender refinement
 
+	replace gender=prob_altro_nome if gender == "U"
+	
 /*------------------------------------------------------------------------------
     4   Generate key variables for analysis
 -------------------------------------------------------------------------------*/
@@ -330,10 +336,10 @@ has_badchar |      Freq.     Percent        Cum.
 
 	
 	
-	br regione provincia comune if _merge==1 & year==2004 & has_badchar == 0
+	*br regione provincia comune if _merge==1 & year==2004 & has_badchar == 0
 	
 	
-/*	* List of unmatched communes NOT DUE to the varchar issue
+	* List of unmatched communes NOT DUE to the varchar issue
 	preserve
 		keep if _merge==1 & year==2004 & has_badchar == 0
 		keep regione provincia comune
@@ -348,7 +354,7 @@ has_badchar |      Freq.     Percent        Cum.
 		duplicates drop
 		export excel using "$output\unmatching_municipalities_electoral.xlsx", replace firstrow(variables)
 	restore
-*/	
+
 	
 	
 	
