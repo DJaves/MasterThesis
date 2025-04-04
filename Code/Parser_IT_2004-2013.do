@@ -170,6 +170,10 @@ sort regione provincia comune date turno
 	replace provincia = lower(provincia)
 	replace comune = lower(comune)
 	
+	replace provincia = "reggio emilia" if provincia=="reggio nell'emilia"
+	replace provincia = "reggio calabria" if provincia=="reggio di calabria"
+
+	
 	*Export for merge
 	keep if rank==1
 	save "$output\electoral_main_2.dta", replace
@@ -180,11 +184,15 @@ sort regione provincia comune date turno
 	
 	gen last_election_year = year
 	
-	
+
+
 	
 	*** Data expansion
 	* Step 1: Create panel identifier
 	egen id = group(regione provincia comune)
+	
+	**** CORRECT THIS FIX LATER!!!!!!!!!!!!!
+	duplicates drop id year, force
 
 	* Step 2: Set as panel data
 	xtset id year
@@ -214,10 +222,7 @@ sort regione provincia comune date turno
 }
 	
 
-	*Provincia Corrections
-	
-	replace provincia = "reggio emilia" if provincia=="reggio nell'emilia"
-	*replace provincia = "reggio calabria" if provincia=="reggio di calabria"
+
 
 	
 
@@ -282,14 +287,17 @@ rename anno year
 	
 /*
 
+
     Result                      Number of obs
     -----------------------------------------
-    Not matched                       376,898
+    Not matched                       376,468
         from master                   371,528  (_merge==1)
-        from using                      5,370  (_merge==2)
+        from using                      4,940  (_merge==2)
 
     Matched                         2,190,370  (_merge==3)
     -----------------------------------------
+
+
 
 
 	
