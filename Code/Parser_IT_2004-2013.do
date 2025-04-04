@@ -214,6 +214,8 @@ sort regione provincia comune date turno
 }
 
 
+	replace comune = ustrregexra(comune, "\uFFFD", "")
+
 	save "$output\electoral_main_expanded.dta", replace
 
 
@@ -246,7 +248,15 @@ sort regione provincia comune date turno
 	/// All matched, we ball!
 	
 	replace provincia = lower(provincia)
-
+	
+	//Handling provincia issue with badchar
+	/*
+		replace comune = subinstr(comune,"a'","",.)
+		replace comune = subinstr(comune,"e'","",.)
+		replace comune = subinstr(comune,"i'","",.)
+		replace comune = subinstr(comune,"o'","",.)
+		replace comune = subinstr(comune,"u'","",.)
+	*/
 	
 /*------------------------------------------------------------------------------
     7   Big merge time
@@ -324,6 +334,19 @@ has_badchar |      Freq.     Percent        Cum.
 	restore
 */	
 	
+	
+	
+
+	* List of unmatched communes DUE to the varchar issue
+	preserve
+		keep if _merge==1 & year==2004 & has_badchar == 1
+		keep regione provincia comune
+		duplicates drop
+		export excel using "$output\unmatching_municipalities_crime_badchar.xlsx", replace firstrow(variables)
+	restore
+	
+	
+	
 	*unique comune if _merge==1 & year==2004 & has_badchar == 0
 	
 	/*
@@ -345,27 +368,28 @@ has_badchar |      Freq.     Percent        Cum.
 
 	use "$output\merged_progress.dta", clear
 
-	gen years_from_last_election = year - last_election_year
 	
 	
 	
+	*Keep only matched observations
 	keep if _merge==3
 	
-	gen delitti_totale = delitti_commessi + delitti_scoperti
 	
-	
-	
-	
+	*Dummy for Main Analysis
 	gen dummy = 1 if gender=="F"
 		replace dummy = 0 if gender =="M"
 
-		
+	
+	*Margin fem, for running variable generation
 	gen margin_fem = margin_pct
 		replace margin_fem = -margin_pct if gender_second == "F"
 		
 		
-	gen totale_pc_x100000 = delitti_totale/pop_dec_tot*100000
-	gen frac_female = pop_dec_f/pop_dec_tot
+	*Relevant outcomes and control variables
+	gen delitti_totale = delitti_commessi + delitti_scoperti					// All crime commited
+	gen totale_pc_x100000 = delitti_totale/pop_dec_tot*100000					// Crime per 100k habitants
+	gen frac_female = pop_dec_f/pop_dec_tot										// Fraction of female in the municipality
+	gen years_from_last_election = year - last_election_year					// Years from last election, key heterogeneity analysis factor
 		
 	save "$output\final_database.dta", replace 
 	
