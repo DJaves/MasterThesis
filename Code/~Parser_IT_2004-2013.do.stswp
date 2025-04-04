@@ -212,9 +212,16 @@ sort regione provincia comune date turno
     
     bys id (aux): replace `var' = `var'[_n-1] if missing(`var')
 }
+	
 
+	*Provincia Corrections
+	
+	replace provincia = "reggio emilia" if provincia=="reggio nell'emilia"
+	*replace provincia = "reggio calabria" if provincia=="reggio di calabria"
 
-	replace comune = ustrregexra(comune, "\uFFFD", "")
+	
+
+	*replace comune = ustrregexra(comune, "\uFFFD", "")
 
 	save "$output\electoral_main_expanded.dta", replace
 
@@ -277,12 +284,13 @@ rename anno year
 
     Result                      Number of obs
     -----------------------------------------
-    Not matched                       394,498
-        from master                   388,678  (_merge==1)
-        from using                      5,820  (_merge==2)
+    Not matched                       376,898
+        from master                   371,528  (_merge==1)
+        from using                      5,370  (_merge==2)
 
-    Matched                         2,173,220  (_merge==3)
+    Matched                         2,190,370  (_merge==3)
     -----------------------------------------
+
 
 	
 	Observations with no sigla: 25 670
