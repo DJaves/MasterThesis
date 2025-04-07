@@ -293,6 +293,18 @@ rename anno year
 	
 /*
 
+	
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       376,468
+        from master                   371,528  (_merge==1)
+        from using                      4,940  (_merge==2)
+
+    Matched                         2,190,370  (_merge==3)
+    -----------------------------------------
+
+
+
 
 
 	has_badchar |      Freq.     Percent        Cum.
