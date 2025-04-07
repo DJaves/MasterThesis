@@ -36,10 +36,6 @@ global output	"C:\Users\Daniel\Documents\Thesis\Out"
 
 if `packages'==1 {
 	
-	*Genderit
-	*net from "https://raw.githubusercontent.com/IES-platform/r4r_gender/master/genderit/STATA/"
-	*net install genderit
-	
 	ssc install unique
 	ssc install gtools
 	

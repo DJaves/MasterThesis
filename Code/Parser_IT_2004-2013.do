@@ -141,7 +141,7 @@ sort regione provincia comune date turno
 	gen ctry="IT"
 	
 	genderit nome2 ctry
-	rename gender prob_altro_nome
+	rename gender altro_nome
 	drop prob* step
 	
 	genderit nome1 ctry
@@ -151,7 +151,7 @@ sort regione provincia comune date turno
 	*** NOTE: Some names are getting assigned when they should be undetermined: "Andrea" and "Mattia" for example
 	*** Pending: Gender refinement
 
-	replace gender=prob_altro_nome if gender == "U"
+	replace gender=altro_nome if gender == "U"
 	
 /*------------------------------------------------------------------------------
     4   Generate key variables for analysis
@@ -294,14 +294,14 @@ rename anno year
 /*
 
 
-    Result                      Number of obs
-    -----------------------------------------
-    Not matched                       376,468
-        from master                   371,528  (_merge==1)
-        from using                      4,940  (_merge==2)
 
-    Matched                         2,190,370  (_merge==3)
-    -----------------------------------------
+	has_badchar |      Freq.     Percent        Cum.
+	------------+-----------------------------------
+			  0 |    325,978       87.74       87.74
+			  1 |     45,550       12.26      100.00
+	------------+-----------------------------------
+		  Total |    371,528      100.00
+
 
 
 
