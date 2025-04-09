@@ -454,8 +454,8 @@ has_badchar |      Freq.     Percent        Cum.
 	
 	
 	*Dummy for Main Analysis
-	gen dummy = 1 if gender=="F"
-		replace dummy = 0 if gender =="M"
+	gen dummy = 1 if gender=="F" & gender_second=="M"
+		replace dummy = 0 if gender =="M" & gender_second =="F"
 
 	
 	*Margin fem, for running variable generation
