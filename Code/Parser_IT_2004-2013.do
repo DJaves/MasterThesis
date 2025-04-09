@@ -425,6 +425,11 @@ has_badchar |      Freq.     Percent        Cum.
 	gen frac_female = pop_dec_f/pop_dec_tot										// Fraction of female in the municipality
 	gen years_from_last_election = year - last_election_year					// Years from last election, key heterogeneity analysis factor
 		
+		
+	*RDD squared vars
+	gen margin_femSQRD = margin_fem^2
+	gen dummyXmargin_femSQRD = margin_femSQRD*dummy	
+	
 	save "$output\final_database.dta", replace 
 	
 	
