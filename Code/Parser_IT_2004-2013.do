@@ -459,8 +459,8 @@ has_badchar |      Freq.     Percent        Cum.
 
 	
 	*Margin fem, for running variable generation
-	gen margin_fem = margin_pct
-		replace margin_fem = -margin_pct if gender_second == "F"
+	gen margin_fem = margin_pct if gender=="F" & gender_second=="M"
+		replace margin_fem = -margin_pct if gender=="M" & gender_second=="F"
 		
 		
 	*Relevant outcomes and control variables

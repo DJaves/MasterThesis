@@ -38,7 +38,7 @@ if `packages'==1 {
 	
 	ssc install unique
 	ssc install gtools
-	
+	ssc install rddensity
 }
 
 cd "$input"
