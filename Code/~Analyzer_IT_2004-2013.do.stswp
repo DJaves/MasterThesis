@@ -285,3 +285,105 @@ use final_database, clear
 		}
 		
 	}
+	
+	
+/*------------------------------------------------------------------------------
+    1 	D&D - 
+-------------------------------------------------------------------------------*/
+
+
+use final_database, clear
+	
+	
+	gen treated=0
+		replace treated=1 if gender=="F"
+		
+		
+	gsort provincia comune delitto_name year
+	bys provincia comune delitto_name: gen cum=sum(treated)
+	
+	
+	replace treated=. if treated==0 & cum>0
+		replace cum=. if treated==.
+		
+	gen treated_year = year if cum==1
+		
+	bys provincia comune delitto_name: egen treatment_year=max(treated_year)
+	bys provincia comune delitto_name: egen always_takers_id=max(cum)
+	
+	gen timing_treatment = year-treatment_year
+	
+	levelsof timing_treatment, local(stags)
+	
+	foreach stag in `stags' {
+		if `stag'<0{
+			local value=abs(`stag')
+			gen b_bef`value'=1 if timing_treatment==`stag'
+				replace b_bef`value'=0 if b_bef`value'==.
+		}
+		
+		else {
+			local value `stag'
+			gen b_aft`value'=1 if timing_treatment==`stag'
+				replace b_aft`value'=0 if b_aft`value'==.
+		}
+		
+		
+	}
+	
+	drop b_bef1
+	
+	
+	
+	
+	
+	*Drop always takers
+preserve
+
+	drop if always_takers_id>8
+	drop if pop_dec_tot<5000
+	drop if margin_pct<0.1
+	
+foreach measure in $measures {
+		local y "`measure'_pc_x100000"
+		foreach outcome in $outcomes {
+				* RDD - No Controls - 20% margin threshold
+						
+				
+				
+				* RDD - Year FE - 20% margin threshold
+							
+					eststo reg1_1: reghdfe `y'   b_bef* b_aft* if delitto_name=="`outcome'", absorb(year comune)
+					estadd local year_FE "Yes"
+					
+				
+				
+				
+				*RDD - Year FE, number of electors - 20% margin threshold			
+					eststo reg1_2: reghdfe `y'  b_bef* b_aft* elettori if delitto_name=="`outcome'" , absorb(year comune)
+					estadd local year_FE "Yes"
+				
+				
+				
+				*RDD - Year FE, number of electors, female fraction - 20% margin threshold
+					eststo reg1_3: reghdfe `y'  b_bef* b_aft* elettori frac_female if delitto_name=="`outcome'" , absorb(year comune)
+					estadd local year_FE "Yes"
+							
+				
+
+				
+				esttab reg1_1 reg1_2 reg1_3 using "$output/DiD_`measure'_`outcome'_popfilter_lowmargin.tex", stats(N r2 year_FE) star(* 0.10 ** 0.05 *** 0.01) replace se mtitles( "DiD, year FE" "DiD, year FE controls 1" "DiD, year FE controls 2" ) title("`outcome'")
+				
+				
+				coefplot reg1_1 reg1_2 reg1_3, keep(b_bef* b_aft*) xtitle("Years (until / after) having a woman as a mayor") ytitle("Estimated Effect") title("Event Study - `outcome' - `measure'") vertical xlabel(, angle(vertical)) yline(0)
+		graph export "DiD_`measure'_`outcome'_popfilter_lowmargin.pdf", replace
+			
+		}
+	
+	
+	}
+	
+restore
+	
+	
+	
