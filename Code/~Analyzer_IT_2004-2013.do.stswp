@@ -340,9 +340,10 @@ use final_database, clear
 	*Drop always takers
 preserve
 
-	drop if always_takers_id>8
+	drop if treatment_year==2004
 	drop if pop_dec_tot<5000
-	drop if margin_pct<0.1
+	drop if pop_dec_tot<15000
+
 	
 foreach measure in $measures {
 		local y "`measure'_pc_x100000"
@@ -353,20 +354,20 @@ foreach measure in $measures {
 				
 				* RDD - Year FE - 20% margin threshold
 							
-					eststo reg1_1: reghdfe `y'   b_bef* b_aft* if delitto_name=="`outcome'", absorb(year comune)
+					eststo reg1_1: reghdfe `y'   b_bef* b_aft* if delitto_name=="`outcome'", absorb(year provincia)
 					estadd local year_FE "Yes"
 					
 				
 				
 				
 				*RDD - Year FE, number of electors - 20% margin threshold			
-					eststo reg1_2: reghdfe `y'  b_bef* b_aft* elettori if delitto_name=="`outcome'" , absorb(year comune)
+					eststo reg1_2: reghdfe `y'  b_bef* b_aft* elettori if delitto_name=="`outcome'" , absorb(year provincia)
 					estadd local year_FE "Yes"
 				
 				
 				
 				*RDD - Year FE, number of electors, female fraction - 20% margin threshold
-					eststo reg1_3: reghdfe `y'  b_bef* b_aft* elettori frac_female if delitto_name=="`outcome'" , absorb(year comune)
+					eststo reg1_3: reghdfe `y'  b_bef* b_aft* elettori frac_female if delitto_name=="`outcome'" , absorb(year provincia)
 					estadd local year_FE "Yes"
 							
 				
@@ -376,7 +377,7 @@ foreach measure in $measures {
 				
 				
 				coefplot reg1_1 reg1_2 reg1_3, keep(b_bef* b_aft*) xtitle("Years (until / after) having a woman as a mayor") ytitle("Estimated Effect") title("Event Study - `outcome' - `measure'") vertical xlabel(, angle(vertical)) yline(0)
-		graph export "DiD_`measure'_`outcome'_popfilter_lowmargin.pdf", replace
+		graph export "$output/DiD_`measure'_`outcome'_popfilter_lowmargin.pdf", replace
 			
 		}
 	
