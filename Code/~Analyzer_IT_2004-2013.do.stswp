@@ -340,6 +340,7 @@ use final_database, clear
 	*Drop always takers
 preserve
 
+	*Sample Fi
 	drop if treatment_year==2004
 	drop if pop_dec_tot<5000
 
