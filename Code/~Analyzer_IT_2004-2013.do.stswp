@@ -288,7 +288,7 @@ use final_database, clear
 	
 	
 /*------------------------------------------------------------------------------
-    1 	D&D - 
+    1 	Event Study 
 -------------------------------------------------------------------------------*/
 
 
@@ -342,17 +342,15 @@ preserve
 
 	drop if treatment_year==2004
 	drop if pop_dec_tot<5000
-	drop if pop_dec_tot<15000
+
 
 	
 foreach measure in $measures {
 		local y "`measure'_pc_x100000"
-		foreach outcome in $outcomes {
-				* RDD - No Controls - 20% margin threshold
-						
+		foreach outcome in $outcomes {			
 				
 				
-				* RDD - Year FE - 20% margin threshold
+				* 	DID - Year Province FE 
 							
 					eststo reg1_1: reghdfe `y'   b_bef* b_aft* if delitto_name=="`outcome'", absorb(year provincia)
 					estadd local year_FE "Yes"
@@ -360,24 +358,24 @@ foreach measure in $measures {
 				
 				
 				
-				*RDD - Year FE, number of electors - 20% margin threshold			
+				*	DID - Year FE, number of electors - 20% margin threshold			
 					eststo reg1_2: reghdfe `y'  b_bef* b_aft* elettori if delitto_name=="`outcome'" , absorb(year provincia)
 					estadd local year_FE "Yes"
 				
 				
 				
-				*RDD - Year FE, number of electors, female fraction - 20% margin threshold
+				*	DID - Year FE, number of electors, female fraction - 20% margin threshold
 					eststo reg1_3: reghdfe `y'  b_bef* b_aft* elettori frac_female if delitto_name=="`outcome'" , absorb(year provincia)
 					estadd local year_FE "Yes"
 							
 				
 
 				
-				esttab reg1_1 reg1_2 reg1_3 using "$output/DiD_`measure'_`outcome'_popfilter_lowmargin.tex", stats(N r2 year_FE) star(* 0.10 ** 0.05 *** 0.01) replace se mtitles( "DiD, year FE" "DiD, year FE controls 1" "DiD, year FE controls 2" ) title("`outcome'")
+				esttab reg1_1 reg1_2 reg1_3 using "$output/DiD_`measure'_`outcome'_popfilter.tex", stats(N r2 year_FE) star(* 0.10 ** 0.05 *** 0.01) replace se mtitles( "DiD, year FE" "DiD, year FE controls 1" "DiD, year FE controls 2" ) title("`outcome'")
 				
 				
-				coefplot reg1_1 reg1_2 reg1_3, keep(b_bef* b_aft*) xtitle("Years (until / after) having a woman as a mayor") ytitle("Estimated Effect") title("Event Study - `outcome' - `measure'") vertical xlabel(, angle(vertical)) yline(0)
-		graph export "$output/DiD_`measure'_`outcome'_popfilter_lowmargin.pdf", replace
+				coefplot reg1_1 reg1_2 reg1_3, keep(b_bef* b_aft*) xtitle("Years (until / after) having a woman as a mayor") ytitle("Estimated Effect") title("Event Study - `outcome' - `measure'") vertical xlabel(, angle(vertical)) yline(0) levels(90)
+		graph export "$output/DiD_`measure'_`outcome'_popfilter.pdf", replace
 			
 		}
 	
@@ -385,6 +383,16 @@ foreach measure in $measures {
 	}
 	
 restore
+
+
+
+/*------------------------------------------------------------------------------
+    1 	D&D - new treatment
+-------------------------------------------------------------------------------*/
+
+
+use final_database, clear
+	
 	
 	
 	
