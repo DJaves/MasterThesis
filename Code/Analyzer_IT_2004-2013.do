@@ -26,9 +26,10 @@
 
 *Macros
 
-local packages 0
-global input	"C:\Users\Daniel\Documents\Thesis\Parsed Data"
-global output	"C:\Users\Daniel\Documents\Thesis\Out"
+local packages 1
+global files_path "P:\Thesis_files\Thesis"
+global input	"$files_path\Parsed Data"
+global output	"$files_path\Out"
 global outcomes `" "violenze sessuali" "totale" "furti" "lesioni dolose" "minacce" "ingiurie" "danneggiamenti" "rapine" "'
 global measures `" "commessi" "scoperti" "'
 global threshold 0.1

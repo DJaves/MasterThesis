@@ -34,8 +34,9 @@
 *Macros
 
 local packages 0
-global input	"C:\Users\Daniel\Documents\Thesis\Raw Data"
-global output	"C:\Users\Daniel\Documents\Thesis\Parsed Data"
+global files_path "P:\Thesis_files\Thesis"
+global input	"$files_path\Raw Data"
+global output	"$files_path\Parsed Data"
 
 
 *Install packages
