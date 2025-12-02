@@ -45,8 +45,9 @@ global output	"$files_path\Parsed Data"
 if `packages'==1 {
 	
 	*Genderit
-	*net from "https://raw.githubusercontent.com/IES-platform/r4r_gender/master/genderit/STATA/"
-	*net install genderit
+// 	net from "https://raw.githubusercontent.com/IES-platform/r4r_gender/master/genderit/STATA/"
+// 	net install genderit
+// 	genderit_install_wgnd // WGND 2.0 (default)
 	
 	ssc install unique
 	ssc install gtools
@@ -131,6 +132,23 @@ sort regione provincia comune date turno
 
 
 /*------------------------------------------------------------------------------
+    2.5   Exploring Populist Possibilities
+-------------------------------------------------------------------------------*/
+
+// keep if rank<=2
+//
+// gen n=1
+//
+// collapse (sum) n, by(lista)
+//
+// egen totale=total(n)
+// gen pct=n/totale
+//
+//
+//
+// export excel using "$output\list_parties.xlsx", replace firstrow(variables)
+
+/*------------------------------------------------------------------------------
     3   Gender imputing
 -------------------------------------------------------------------------------*/
 
@@ -165,6 +183,12 @@ sort regione provincia comune date turno
 		
 	* Generate gender of second place
 	gsort regione provincia comune date turno - voti_candidato 
+	
+	gen civica_yn=1 if lista=="LISTA CIVICA" | strpos(lista, "LS.CIVICHE") > 0
+		replace civica_yn=0 if civica_yn==.
+	
+	
+	gen civica_yn_second=civica_yn[_n+1] if rank == 1
 	
 	gen gender_second = gender[_n+1] if rank == 1
 	
