@@ -325,7 +325,7 @@ rename anno year
 	
 		
 	
-	merge m:1 year provincia comune using "$output\electoral_main_expanded.dta", keepusing(margin_pct gender gender_second last_election_year id elettori)
+	merge m:1 year provincia comune using "$output\electoral_main_expanded.dta", keepusing(margin_pct gender gender_second last_election_year id elettori civica_yn civica_yn_second)
 	
 	
 /*
@@ -473,17 +473,106 @@ has_badchar |      Freq.     Percent        Cum.
 	
 	
 /*------------------------------------------------------------------------------
-    8   Final var generation
+    8   Final var generation (switched for alternative exhaustive analysis)
 -------------------------------------------------------------------------------*/
 
 	use "$output\merged_progress.dta", clear
+	
+	/*-------------------------------------------------------------------------------
+    1 Generate Ssubclass variables
+------------------------------------------------------------------------------*/
 
+gen delitto_recoded=delitto_code
+
+	replace delitto_recoded=subinstr(delitto_recoded,"a",".01",.)
+	replace delitto_recoded=subinstr(delitto_recoded,"b",".02",.)
+	replace delitto_recoded=subinstr(delitto_recoded,"c",".03",.)
+	replace delitto_recoded=subinstr(delitto_recoded,"d",".04",.)
+	replace delitto_recoded=subinstr(delitto_recoded,"e",".05",.)
+	replace delitto_recoded=subinstr(delitto_recoded,"f",".06",.)
+	replace delitto_recoded=subinstr(delitto_recoded,"g",".07",.)
+	replace delitto_recoded=subinstr(delitto_recoded,"h",".08",.)
+	replace delitto_recoded=subinstr(delitto_recoded,"i",".09",.)
+	replace delitto_recoded=subinstr(delitto_recoded,"j",".10",.)
+	replace delitto_recoded=subinstr(delitto_recoded,"k",".11",.)
+
+	destring delitto_recoded, replace
+	
+	
+	
+*Var Creation: Exhaustive Classification
+
+gen exhaustive_class=""
+	
+	replace exhaustive_class="aggresion" if delitto_recoded==1 | delitto_recoded==8 | delitto_recoded==9 | delitto_recoded==18 
+	replace exhaustive_class="murder(and temptative)" if delitto_recoded>=2 & delitto_recoded<=7.2
+	replace exhaustive_class="verbal crimes" if delitto_recoded==10 | delitto_recoded==11 
+	replace exhaustive_class="sex crimes" if floor(delitto_recoded)==12 | floor(delitto_recoded)==30 | inlist(delitto_recoded,13,14)
+	replace exhaustive_class="Theft" if delitto_recoded>=15 & delitto_recoded<=16 
+	replace exhaustive_class="Robbery" if floor(delitto_recoded)==17
+	replace exhaustive_class="kidnapping" if floor(delitto_recoded)==20
+	replace exhaustive_class="property damage" if delitto_recoded>=25 & delitto_recoded<=27
+	replace exhaustive_class="drug_crimes" if floor(delitto_recoded)==29
+	replace exhaustive_class="other" if delitto_recoded==34
+	replace exhaustive_class="(suposed) total" if delitto_recoded==35
+	replace exhaustive_class = "trafficking and association crimes" if inlist(delitto_recoded, ///
+    19, 19.1, 21, 22, 23, 24,  ///
+    28,  ///
+    31, 32, 33)
+
+	
+	
+
+	
+/*-------------------------------------------------------------------------------
+    2 Generate Baseline alaysis Database (collapse at exhaustive class level)
+------------------------------------------------------------------------------*/
+
+*Back with the old pipeline....
 	
 	rename _merge1 _merge
 	
 	*Keep only matched observations
 	keep if _merge==3
 	
+	drop _merge
+
+	
+	
+collapse (sum) delitti_commessi (sum) delitti_scoperti (first) idcomune (first) idregione (first) idprovincia (first) pop_dec_m (first) pop_dec_f (first) pop_dec_tot (first) popstranieri (first) elettori (first) margin_pct (first) gender (first) gender_second (first) last_election_year, by (comune provincia regione year exhaustive_class)
+	
+	
+* --- your panel of by vars ---
+bys year comune regione provincia: gen tag = _n==1
+
+* get unique lists
+preserve
+keep year comune regione provincia exhaustive_class idcomune idregione idprovincia pop_dec_m pop_dec_f pop_dec_tot popstranieri
+fillin year comune exhaustive_class
+tempfile fullpanel
+save `fullpanel'
+restore
+
+* merge original data to full panel
+merge 1:1 year comune regione provincia exhaustive_class using `fullpanel'
+
+* For new rows (_merge==2), outcomes are zero
+replace delitti_commessi = 0 if _merge==2
+replace delitti_scoperti = 0 if _merge==2
+
+drop _merge
+
+
+save intermediate_analysis.dta, replace
+
+	
+	
+	
+	
+	
+	
+	
+	merge m:1 year provincia comune using "$output\electoral_main_expanded.dta", keepusing(civica_yn civica_yn_second)
 	
 	*Dummy for Main Analysis
 	gen dummy = 1 if gender=="F" & gender_second=="M"
@@ -508,7 +597,26 @@ has_badchar |      Freq.     Percent        Cum.
 	gen margin_femSQRD = margin_fem^2
 	gen dummyXmargin_femSQRD = margin_femSQRD*dummy	
 	
-	save "$output\final_database.dta", replace 
+	
+	*Dummy for Civica Analysis
+	gen dummy_civica = 1 if civica_yn==1 & civica_yn_second==0
+		replace dummy_civica = 0 if civica_yn ==0 & civica_yn_second ==1
+
+	
+	*Margin fem, for running variable generation
+	gen margin_civica = margin_pct if civica_yn==1 & civica_yn_second==0
+		replace margin_civica = -margin_pct if civica_yn==0 & civica_yn_second==1
+		
+		
+
+	*RDD squared vars
+	gen margin_civicaSQRD = margin_civica^2
+	gen dummyXmargin_civicaSQRD = margin_civicaSQRD*dummy_civica	
+	
+	
+	
+	
+	save "$output\final_database_w_civica.dta", replace 
 	
 	
 
